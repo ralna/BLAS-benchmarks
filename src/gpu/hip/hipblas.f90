@@ -1,5 +1,5 @@
 module hipblas_benchmarks
-   use benchmark_types, only: Benchmark, read_array, write_header
+   use benchmark_types, only: Benchmark, read_array, write_result_header, write_result
    use iso_fortran_env, only: int64, real64, int32
    use iso_c_binding, only: c_ptr, c_null_ptr
    use tomlf, only: toml_table
@@ -80,14 +80,7 @@ contains
 
       call self%open_results_file(iunit, file_exists)
 
-      if (.not. file_exists) then
-         call write_header( iunit,&
-            "m", self%m_sizes,&
-            "n", self%n_sizes,&
-            "k", self%k_sizes)
-      end if
-
-      write(iunit, '(A)', advance='no') 'GFLOPS/s,'
+      if (.not. file_exists) call write_result_header(iunit)
 
       do i = 1, size(self%m_sizes)
          do j = 1, size(self%n_sizes)
@@ -118,7 +111,8 @@ contains
                   avg_gflops = self%time_benchmark(100)
                end if
 
-               write(iunit, '(F13.7,A)', advance='no') avg_gflops, ','
+               call write_result(iunit, "HIP", &
+                  avg_gflops, m=self%m, n=self%n, k=self%k)
 
                call hip_error_check(hipFree(self%A_d), flag)
                call hip_error_check(hipFree(self%B_d), flag)
@@ -130,8 +124,6 @@ contains
             end do
          end do
       end do
-
-      write(iunit, '(A)') ''
 
       close(iunit)
    end subroutine run_hipblas_dgemm

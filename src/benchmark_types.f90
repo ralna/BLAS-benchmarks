@@ -2,7 +2,7 @@ module benchmark_types
    use iso_fortran_env, only: int64, real64
    use tomlf, only: toml_table, toml_array, get_value
    implicit none (external)
-   public :: write_header
+   public :: write_result_header, write_result
    type, public, abstract :: Benchmark
       integer(int64) :: num_flops = 0.
       character(len=32) :: name
@@ -45,10 +45,6 @@ module benchmark_types
          type(toml_table), pointer, intent(in) :: benchmark_table
 
       end subroutine init
-   end interface
-
-   interface write_header
-      module procedure header_3_dim, header_2_dim, header_1_dim
    end interface
 
 contains
@@ -135,111 +131,42 @@ contains
 
    end subroutine read_array
 
-   subroutine header_3_dim (iunit, dim1_name, dim1, dim2_name, dim2, dim3_name, dim3)
-      character(len=*), intent(in) :: dim1_name
-      !! Name associated with first dimension
-      integer, intent(in), dimension(:) ::  dim1
-      !! Array of sizes of first dimension
-
-      character(len=*), intent(in) :: dim2_name
-      !! Name associated with second dimension
-      integer, intent(in), dimension(:) ::  dim2
-      !! Array of sizes of second dimension
-
-      character(len=*), intent(in) :: dim3_name
-      !! Name associated with third dimension
-      integer, intent(in), dimension(:) ::  dim3
-      !! Array of sizes of third dimension
-
+   subroutine write_result_header(iunit)
       integer, intent(in) :: iunit
       !! Unit to write to
 
-      integer :: i, j, k
-      !! Loop counter
+      write(iunit, "(A)") "implementation,m,n,k,gflops"
+   end subroutine write_result_header
 
-      write(iunit, '(2A)', advance='no') dim1_name, ','
-
-      do i = 1, size(dim1)
-         do j = 1, size(dim2) * size(dim3)
-            write(iunit, '(I6,A)', advance='no') dim1(i), ','
-         end do
-      end do
-      write(iunit, '(A)') ''
-
-      write(iunit, '(2A)', advance='no') dim2_name, ','
-
-      do k = 1, size(dim1)
-         do i = 1, size(dim2)
-            do j = 1, size(dim3)
-               write(iunit, '(I6,A)', advance='no') dim2(i), ','
-            end do
-         end do
-      end do
-      write(iunit, '(A)') ''
-
-      write(iunit, '(2A)', advance='no') dim3_name, ','
-      do j = 1, size(dim1) * size(dim2)
-         do i = 1, size(dim3)
-            write(iunit, '(I6,A)', advance='no') dim3(i), ','
-         end do
-      end do
-      write(iunit, '(A)') ''
-   end subroutine header_3_dim
-
-   subroutine header_2_dim (iunit, dim1_name, dim1, dim2_name, dim2)
-      character(len=*), intent(in) :: dim1_name
-      !! Name associated with first dimension
-      integer, intent(in), dimension(:) ::  dim1
-      !! Array of sizes of first dimension
-
-      character(len=*), intent(in) :: dim2_name
-      !! Name associated with second dimension
-      integer, intent(in), dimension(:) ::  dim2
-      !! Array of sizes of second dimension
-
+   subroutine write_result(iunit, implementation, gflops, m, n, k)
+      !! Write a single measurement as one CSV line:
+      !! implementation,m,n,k,gflops
+      !! Dimensions (m, n, k) not applicable to a routine are omitted and
+      !! written as empty fields.
       integer, intent(in) :: iunit
       !! Unit to write to
 
-      integer :: i, j
-      !! Loop counter
+      character(len=*), intent(in) :: implementation
+      !! Name of the BLAS implementation used
 
-      write(iunit, '(2A)', advance='no') dim1_name, ','
+      real(real64), intent(in) :: gflops
+      !! Measured performance in GFLOP/s
 
-      do i = 1, size(dim1)
-         do j = 1, size(dim2)
-            write(iunit, '(I6,A)', advance='no') dim1(i), ','
-         end do
-      end do
-      write(iunit, '(A)') ''
+      integer(int64), intent(in), optional :: m, n, k
+      !! Problem dimensions
 
-      write(iunit, '(2A)', advance='no') dim2_name, ','
+      character(len=32) :: ms, ns, ks, gs
+      !! String buffers for the numeric fields
 
-      do i = 1, size(dim2)
-         do j = 1, size(dim1)
-            write(iunit, '(I6,A)', advance='no') dim2(i), ','
-         end do
-      end do
-      write(iunit, '(A)') ''
-   end subroutine header_2_dim
+      ms = ""
+      ns = ""
+      ks = ""
+      if (present(m)) write(ms, "(I0)") m
+      if (present(n)) write(ns, "(I0)") n
+      if (present(k)) write(ks, "(I0)") k
+      write(gs, "(F0.7)") gflops
 
-   subroutine header_1_dim (iunit, dim1_name, dim1)
-      character(len=*), intent(in) :: dim1_name
-      !! Name associated with first dimension
-      integer, intent(in), dimension(:) ::  dim1
-      !! Array of sizes of first dimension
-
-      integer, intent(in) :: iunit
-      !! Unit to write to
-
-      integer :: i
-      !! Loop counter
-
-      write(iunit, '(2A)', advance='no') dim1_name, ','
-
-      do i = 1, size(dim1)
-         write(iunit, '(I6,A)', advance='no') dim1(i), ','
-      end do
-
-      write(iunit, '(A)') ''
-   end subroutine header_1_dim
+      write(iunit, "(A)") trim(implementation)//","// &
+         trim(ms)//","//trim(ns)//","//trim(ks)//","//trim(adjustl(gs))
+   end subroutine write_result
 end module benchmark_types

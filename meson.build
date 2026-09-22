@@ -35,12 +35,16 @@ tomlf_dep = dependency(
 deps += tomlf_dep
 
 if use_cuda
+  subdir('src/gpu/cuda')
+
   cuda_dep = dependency('cuda', version: '>=11.0', modules: ['cublas', 'cudart'])
   deps += cuda_dep
   pp_args += ['-DCUDA']
 endif
 
 if use_hip
+  subdir('src/gpu/hip')
+
   hipfort_dep = dependency('hipfort', modules: ['hipfort::hipfort-amdgcn'])
   deps += hipfort_dep
 

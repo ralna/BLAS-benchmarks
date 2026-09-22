@@ -79,6 +79,25 @@ FLEXIBLAS="YOUR_BLAS" ./build/benchmark_blas config.toml
 ```
 Available BLAS backends are shown with `flexiblas list`.
 
+## Visualising results
+
+A `plot_results.py` script is included to turn the generated CSV files into
+heatmaps, to compare the performance of different BLAS
+implementations across problem sizes. Each heatmap has the implementations down
+the rows and the problem sizes across the columns, with colour encoding the
+measured GFLOP/s.
+
+Install its single dependency and run it:
+
+```
+pip install -r requirements.txt
+python plot_results.py results_<datetime>/
+```
+
+With no arguments it discovers `results_*.csv` in the current directory and one
+level below; you can also pass specific files or directories. A `.png` is written
+next to each CSV.
+
 ## Available functions
 
 ### Level 1 (vector operations):

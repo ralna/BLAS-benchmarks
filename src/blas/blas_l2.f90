@@ -1,5 +1,5 @@
 module blas_l2_benchmarks
-   use benchmark_types, only: Benchmark, write_header, read_array
+   use benchmark_types, only: Benchmark, write_result_header, write_result, read_array
    use l2_interfaces, only: dgemv, sgemv
    use iso_fortran_env, only: int64, real64
    use tomlf, only: toml_table
@@ -64,13 +64,7 @@ contains
 
       call self%open_results_file(iunit, file_exists)
 
-      if (.not. file_exists) then
-         call write_header( iunit,&
-            "m", self%m_sizes,&
-            "n", self%n_sizes)
-      end if
-
-      write(iunit, '(2A)', advance='no') blas_name, ','
+      if (.not. file_exists) call write_result_header(iunit)
 
       do i = 1, size(self%m_sizes)
          do j = 1, size(self%n_sizes)
@@ -89,15 +83,14 @@ contains
 
             avg_gflops = self%time_benchmark(100)
 
-            write(iunit, '(F13.7,A)', advance='no') avg_gflops, ','
- 
+            call write_result(iunit, trim(blas_name), &
+               avg_gflops, m=self%m, n=self%n)
+
             deallocate(self%A)
             deallocate(self%x)
             deallocate(self%y)
          end do
       end do
-
-   write(iunit, '(A)') ''
 
    close(iunit)
 end subroutine run_dgemv

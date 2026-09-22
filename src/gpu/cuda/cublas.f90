@@ -1,5 +1,5 @@
 module cublas_benchmarks
-   use benchmark_types, only: Benchmark, read_array, write_header
+   use benchmark_types, only: Benchmark, read_array, write_result_header, write_result
    use iso_fortran_env, only: int64, real64, int32
    use iso_c_binding, only: c_ptr, c_null_ptr, c_size_t, c_int, c_long, c_double
    use cuda_interfaces
@@ -77,14 +77,7 @@ contains
 
       call self%open_results_file(iunit, file_exists)
 
-      if (.not. file_exists) then
-         call write_header( iunit,&
-            "m", self%m_sizes,&
-            "n", self%n_sizes,&
-            "k", self%k_sizes)
-      end if
-
-      write(iunit, '(A)', advance='no') 'GFLOPS/s,'
+      if (.not. file_exists) call write_result_header(iunit)
 
       do i = 1, size(self%m_sizes)
          do j = 1, size(self%n_sizes)
@@ -138,7 +131,8 @@ contains
                call cuda_err_check(cudaFree(self%B_d), flag)
                call cuda_err_check(cudaFree(self%C_d), flag)
 
-               write(iunit, '(F13.7,A)', advance='no') avg_gflops, ','
+               call write_result(iunit, "CUDA", &
+                  avg_gflops, m=self%m, n=self%n, k=self%k)
 
                deallocate(self%A)
                deallocate(self%B)
@@ -150,8 +144,6 @@ contains
             end do
          end do
       end do
-
-      write(iunit, '(A)') ''
 
       close(iunit)
    end subroutine run_cublas_dgemm

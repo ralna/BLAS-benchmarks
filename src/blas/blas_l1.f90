@@ -1,5 +1,5 @@
 module blas_l1_benchmarks
-   use benchmark_types, only: Benchmark, write_header, read_array
+   use benchmark_types, only: Benchmark, write_result_header, write_result, read_array
    use l1_interfaces, only: dasum, daxpy
    use iso_fortran_env, only: int64, real64
    use tomlf, only: toml_table
@@ -61,12 +61,7 @@ contains
 
       call self%open_results_file(iunit, file_exists)
 
-      if (.not. file_exists) then
-         call write_header( iunit,&
-            "n", self%n_sizes)
-      end if
-
-      write(iunit, '(2A)', advance='no') blas_name, ','
+      if (.not. file_exists) call write_result_header(iunit)
 
       do i = 1, size(self%n_sizes)
          self%n = self%n_sizes(i)
@@ -81,13 +76,12 @@ contains
 
          avg_gflops = self%time_benchmark(100)
 
-         write(iunit, '(F13.7,A)', advance='no') avg_gflops, ','
+         call write_result(iunit, trim(blas_name), &
+            avg_gflops, n=self%n)
 
          deallocate(self%x)
          deallocate(self%y)
       end do
-
-      write(iunit, '(A)') ''
 
       close(iunit)
    end subroutine run_daxpy
@@ -119,12 +113,7 @@ contains
 
       call self%open_results_file(iunit, file_exists)
 
-      if (.not. file_exists) then
-         call write_header( iunit,&
-            "n", self%n_sizes)
-      end if
-
-      write(iunit, '(2A)', advance='no') blas_name, ','
+      if (.not. file_exists) call write_result_header(iunit)
 
       do i = 1, size(self%n_sizes)
          self%n = self%n_sizes(i)
@@ -137,12 +126,11 @@ contains
 
          avg_gflops = self%time_benchmark(100)
 
-         write(iunit, '(F13.7,A)', advance='no') avg_gflops, ','
+         call write_result(iunit, trim(blas_name), &
+            avg_gflops, n=self%n)
 
          deallocate(self%x)
       end do
-
-      write(iunit, '(A)') ''
 
       close(iunit)
    end subroutine run_dasum
