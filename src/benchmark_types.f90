@@ -6,6 +6,8 @@ module benchmark_types
    type, public, abstract :: Benchmark
       integer(int64) :: num_flops = 0.
       character(len=32) :: name
+      integer :: num_repeats = 100
+      !! Number of timed calls per problem size
 
       integer, dimension(:), allocatable :: m_sizes
       integer, dimension(:), allocatable :: n_sizes
@@ -55,36 +57,36 @@ contains
       return
    end function get_filename
 
-   function time_benchmark(self, n_iters) result(max_flops)
+   function time_benchmark(self) result(avg_gflops)
+      !! Time num_repeats back-to-back calls of the benchmark and return the
+      !! mean throughput in GFLOP/s. The whole batch is timed at once since a
+      !! single call to a small routine can be shorter than the clock resolution.
       class(Benchmark), intent(inout) :: self
-      integer, intent(in) :: n_iters
 
       integer(int64) :: start_count, end_count
       integer(int64) :: count_rate, count_max
 
       real(real64) :: elapsed_time
 
-      real(real64) :: max_flops, flops
+      real(real64) :: avg_gflops
 
       integer :: i
 
-      max_flops = 0
-      do i = 1, n_iters
-         call system_clock(start_count, count_rate, count_max)
+      !Untimed warm-up call
+      call self%call_benchmark()
+
+      call system_clock(start_count, count_rate, count_max)
+      do i = 1, self%num_repeats
          call self%call_benchmark()
-         call system_clock(end_count, count_rate, count_max)
-
-         !Time (s)
-         elapsed_time = real(end_count - start_count) / real(count_rate)
-
-         !FLOPS/s
-         flops = real(self%num_flops) / (elapsed_time)
-
-         max_flops = max(max_flops, flops)
-
       end do
+      call system_clock(end_count, count_rate, count_max)
 
-      max_flops = max_flops / (1000.0**3)
+      !Time (s)
+      elapsed_time = real(end_count - start_count, real64) / real(count_rate, real64)
+
+      !GFLOP/s
+      avg_gflops = real(self%num_flops, real64) * real(self%num_repeats, real64) &
+         / elapsed_time / 1.0e9_real64
       return
    end function time_benchmark
 

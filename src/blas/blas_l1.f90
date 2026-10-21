@@ -47,7 +47,7 @@ contains
 
    subroutine call_daxpy(self)
       class(DAXPYBenchmark), intent(inout) :: self
-      self%num_flops = self%n
+      self%num_flops = 2 * self%n
       call daxpy(self%n, self%alpha, self%x, 1, self%y, 1)
    end subroutine call_daxpy
 
@@ -66,7 +66,7 @@ contains
       do i = 1, size(self%n_sizes)
          self%n = self%n_sizes(i)
 
-         self%num_flops = self%n
+         self%num_flops = 2 * self%n
 
          allocate(self%x(self%n))
          allocate(self%y(self%n))
@@ -74,7 +74,7 @@ contains
          call random_number(self%x)
          call random_number(self%y)
 
-         avg_gflops = self%time_benchmark(100)
+         avg_gflops = self%time_benchmark()
 
          call write_result(iunit, trim(blas_name), &
             avg_gflops, n=self%n)
@@ -124,7 +124,7 @@ contains
 
          call random_number(self%x)
 
-         avg_gflops = self%time_benchmark(100)
+         avg_gflops = self%time_benchmark()
 
          call write_result(iunit, trim(blas_name), &
             avg_gflops, n=self%n)

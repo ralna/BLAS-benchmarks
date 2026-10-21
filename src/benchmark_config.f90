@@ -47,6 +47,8 @@ contains
       !! Unit to read config file from
       integer :: i
       !! Loop counter
+      integer :: num_repeats
+      !! Number of timed calls per problem size
 
       !Read file
       inquire(file=config_file, exist=file_exists)
@@ -66,6 +68,13 @@ contains
          stop 1
       end if
 
+      call get_value(config_table, "num_repeats", num_repeats, 100)
+
+      if ( num_repeats <= 0 ) then
+         print *, "num_repeats must be positive"
+         stop 1
+      end if
+
       ! Loop over list of benchmark tables
       call get_value(config_table, "benchmarks", toml_arr)
       allocate(benchmarks(len(toml_arr)))
@@ -74,6 +83,7 @@ contains
          call get_value(toml_arr, i, benchmark_table)
          ! Set up benchmark object according to config
          call init_benchmark(benchmark_table, benchmarks(i))
+         benchmarks(i)%b%num_repeats = num_repeats
       end do
    end subroutine read_config
 

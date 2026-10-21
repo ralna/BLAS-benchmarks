@@ -97,7 +97,7 @@ contains
                call random_number(self%B)
                call random_number(self%C)
 
-               avg_gflops = self%time_benchmark(100)
+               avg_gflops = self%time_benchmark()
 
                call write_result(iunit, trim(blas_name), &
                   avg_gflops, m=self%m, n=self%n, k=self%k)
@@ -168,7 +168,7 @@ contains
             call random_number(self%A)
             call random_number(self%C)
 
-            avg_gflops = self%time_benchmark(100)
+            avg_gflops = self%time_benchmark()
 
             call write_result(iunit, trim(blas_name), &
                avg_gflops, n=self%n, k=self%k)
@@ -227,7 +227,7 @@ contains
             self%n = self%n_sizes(i)
             self%k = self%k_sizes(j)
 
-            self%num_flops = self%n * self%n * self%k
+            self%num_flops = 2 * self%n * self%n * self%k
 
             allocate(self%A(self%n , self%k))
             allocate(self%B(self%n , self%k))
@@ -237,7 +237,7 @@ contains
             call random_number(self%B)
             call random_number(self%C)
 
-            avg_gflops = self%time_benchmark(100)
+            avg_gflops = self%time_benchmark()
 
             call write_result(iunit, trim(blas_name), &
                avg_gflops, n=self%n, k=self%k)

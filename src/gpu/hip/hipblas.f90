@@ -108,7 +108,7 @@ contains
                   print *, "Failed to run CUBLAS DGEMM"
                   avg_gflops = -1
                else
-                  avg_gflops = self%time_benchmark(100)
+                  avg_gflops = self%time_benchmark()
                end if
 
                call write_result(iunit, "HIP", &

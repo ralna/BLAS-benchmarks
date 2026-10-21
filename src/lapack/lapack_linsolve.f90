@@ -61,7 +61,7 @@ contains
          call random_number(self%A)
          call random_number(self%B)
 
-         avg_gflops = self%time_benchmark(100)
+         avg_gflops = self%time_benchmark()
 
          call write_result(iunit, trim(blas_name), &
             avg_gflops, n=self%n)
