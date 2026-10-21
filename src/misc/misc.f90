@@ -1,5 +1,5 @@
 module misc_benchmarks
-   use benchmark_types, only: Benchmark, write_result_header, write_result, read_array
+   use benchmark_types, only: Benchmark, BenchmarkResult, write_result_header, write_result, read_array
    use iso_fortran_env, only: int64, real64
    use tomlf, only: toml_table
    implicit none (external)
@@ -48,7 +48,7 @@ contains
       character(len=16), intent(in) :: blas_name
 
       integer :: i, j, k, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
       logical :: file_exists
 
       call self%open_results_file(iunit, file_exists)
@@ -72,10 +72,10 @@ contains
                call random_number(self%B)
                call random_number(self%C)
 
-               avg_gflops = self%time_benchmark(100)
+               res = self%time_benchmark(100)
 
                call write_result(iunit, trim(blas_name), &
-                  avg_gflops, m=self%m, n=self%n, k=self%k)
+                  res, m=self%m, n=self%n, k=self%k)
 
                deallocate(self%A)
                deallocate(self%B)

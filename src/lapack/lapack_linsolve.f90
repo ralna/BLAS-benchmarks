@@ -1,5 +1,5 @@
 module lapack_linsolve_benchmarks
-   use benchmark_types, only: Benchmark, read_array, write_result_header, write_result
+   use benchmark_types, only: Benchmark, BenchmarkResult, read_array, write_result_header, write_result
    use lapack_interfaces, only: dgesv
    use iso_fortran_env, only: int64, real64
    use tomlf, only: toml_table
@@ -40,7 +40,7 @@ contains
       character(len=16), intent(in) :: blas_name
 
       integer :: i, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
 
       logical :: file_exists
 
@@ -61,10 +61,10 @@ contains
          call random_number(self%A)
          call random_number(self%B)
 
-         avg_gflops = self%time_benchmark(100)
+         res = self%time_benchmark(100)
 
          call write_result(iunit, trim(blas_name), &
-            avg_gflops, n=self%n)
+            res, n=self%n)
 
          deallocate(self%A)
          deallocate(self%B)

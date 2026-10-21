@@ -1,5 +1,5 @@
 module cublas_benchmarks
-   use benchmark_types, only: Benchmark, read_array, write_result_header, write_result
+   use benchmark_types, only: Benchmark, BenchmarkResult, read_array, write_result_header, write_result
    use iso_fortran_env, only: int64, real64, int32
    use iso_c_binding, only: c_ptr, c_null_ptr, c_size_t, c_int, c_long, c_double
    use cuda_interfaces
@@ -62,7 +62,7 @@ contains
       character(len=16), intent(in) :: blas_name
 
       integer :: i, j, k, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
       logical :: file_exists
       integer :: flag = 0
 
@@ -122,9 +122,9 @@ contains
 
                if ( flag == 1 ) then
                   print *, "Failed to run CUBLAS DGEMM"
-                  avg_gflops = -1
+                  res = BenchmarkResult(gflops=-1)
                else
-                  avg_gflops = self%time_benchmark(100)
+                  res = self%time_benchmark(100)
                end if
 
                call cuda_err_check(cudaFree(self%A_d), flag)
@@ -132,7 +132,7 @@ contains
                call cuda_err_check(cudaFree(self%C_d), flag)
 
                call write_result(iunit, "CUDA", &
-                  avg_gflops, m=self%m, n=self%n, k=self%k)
+                  res, m=self%m, n=self%n, k=self%k)
 
                deallocate(self%A)
                deallocate(self%B)

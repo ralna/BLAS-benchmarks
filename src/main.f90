@@ -1,6 +1,7 @@
 program main
     use benchmark_types, only: BenchmarkContainer
     use benchmark_config, only: read_config
+    use fortran_energy_mod, only: energy_init, energy_ready, energy_sensor, energy_kind_name
     use iso_fortran_env, only: real64, int64
 
     implicit none (external)
@@ -23,6 +24,13 @@ program main
     call get_command_argument(1, config_file)
 
     call read_config(config_file, benchmark_array)
+
+    call energy_init()
+    if (energy_ready()) then
+        print "(A)", "Energy sensor: "//trim(energy_sensor())//" ("//trim(energy_kind_name())//")"
+    else
+        print "(A)", "No energy sensor found, energy results will be empty"
+    end if
 
     do i = 1, size(benchmark_array)
         call get_environment_variable("FLEXIBLAS", blas_name)

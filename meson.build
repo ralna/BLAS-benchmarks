@@ -34,6 +34,13 @@ tomlf_dep = dependency(
 
 deps += tomlf_dep
 
+fortran_energy_dep = dependency(
+  'fortran_energy',
+  fallback: ['fortran_energy', 'fortran_energy_dep'],
+)
+
+deps += fortran_energy_dep
+
 if use_cuda
   subdir('src/gpu/cuda')
 

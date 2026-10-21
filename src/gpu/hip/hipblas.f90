@@ -1,5 +1,5 @@
 module hipblas_benchmarks
-   use benchmark_types, only: Benchmark, read_array, write_result_header, write_result
+   use benchmark_types, only: Benchmark, BenchmarkResult, read_array, write_result_header, write_result
    use iso_fortran_env, only: int64, real64, int32
    use iso_c_binding, only: c_ptr, c_null_ptr
    use tomlf, only: toml_table
@@ -66,7 +66,7 @@ contains
       integer(c_int) :: flag
 
       integer :: i, j, k, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
       logical :: file_exists
 
       ! Set handle
@@ -106,13 +106,13 @@ contains
 
                if ( flag == 1 ) then
                   print *, "Failed to run CUBLAS DGEMM"
-                  avg_gflops = -1
+                  res = BenchmarkResult(gflops=-1)
                else
-                  avg_gflops = self%time_benchmark(100)
+                  res = self%time_benchmark(100)
                end if
 
                call write_result(iunit, "HIP", &
-                  avg_gflops, m=self%m, n=self%n, k=self%k)
+                  res, m=self%m, n=self%n, k=self%k)
 
                call hip_error_check(hipFree(self%A_d), flag)
                call hip_error_check(hipFree(self%B_d), flag)

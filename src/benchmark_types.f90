@@ -1,8 +1,19 @@
 module benchmark_types
    use iso_fortran_env, only: int64, real64
    use tomlf, only: toml_table, toml_array, get_value
+   use fortran_energy_mod, only: energy_interval, energy_interval_t
    implicit none (external)
    public :: write_result_header, write_result
+
+   type, public :: BenchmarkResult
+      real(real64) :: gflops = 0
+      !! Best GFLOP/s over all iterations
+      real(real64) :: watts = 0
+      !! Mean power over the whole timed loop (W)
+      real(real64) :: gflops_per_joule = 0
+      !! Energy efficiency over the whole timed loop (GFLOP/J)
+   end type BenchmarkResult
+
    type, public, abstract :: Benchmark
       integer(int64) :: num_flops = 0.
       character(len=32) :: name
@@ -55,9 +66,14 @@ contains
       return
    end function get_filename
 
-   function time_benchmark(self, n_iters) result(max_flops)
+   function time_benchmark(self, n_iters) result(res)
+      !! Run the benchmark n_iters times. Timing is per iteration (best
+      !! GFLOP/s is kept); energy is measured once around the whole loop,
+      !! as a single call is usually shorter than the sensor update interval.
       class(Benchmark), intent(inout) :: self
       integer, intent(in) :: n_iters
+
+      type(BenchmarkResult) :: res
 
       integer(int64) :: start_count, end_count
       integer(int64) :: count_rate, count_max
@@ -66,7 +82,12 @@ contains
 
       real(real64) :: max_flops, flops
 
+      type(energy_interval_t) :: iv
+
       integer :: i
+
+      ! Discard energy consumed since the previous measurement
+      call energy_interval(iv)
 
       max_flops = 0
       do i = 1, n_iters
@@ -84,7 +105,14 @@ contains
 
       end do
 
-      max_flops = max_flops / (1000.0**3)
+      call energy_interval(iv)
+
+      res%gflops = max_flops / (1000.0**3)
+
+      if (iv%j > 0) then
+         res%watts = iv%w_mean
+         res%gflops_per_joule = real(self%num_flops, real64) * n_iters / iv%j / (1000.0**3)
+      end if
       return
    end function time_benchmark
 
@@ -135,27 +163,28 @@ contains
       integer, intent(in) :: iunit
       !! Unit to write to
 
-      write(iunit, "(A)") "implementation,m,n,k,gflops"
+      write(iunit, "(A)") "implementation,m,n,k,gflops,watts,gflops_per_joule"
    end subroutine write_result_header
 
-   subroutine write_result(iunit, implementation, gflops, m, n, k)
+   subroutine write_result(iunit, implementation, res, m, n, k)
       !! Write a single measurement as one CSV line:
-      !! implementation,m,n,k,gflops
+      !! implementation,m,n,k,gflops,watts,gflops_per_joule
       !! Dimensions (m, n, k) not applicable to a routine are omitted and
-      !! written as empty fields.
+      !! written as empty fields. Energy fields are empty when no energy
+      !! was measured (no sensor, or the run was too short to register).
       integer, intent(in) :: iunit
       !! Unit to write to
 
       character(len=*), intent(in) :: implementation
       !! Name of the BLAS implementation used
 
-      real(real64), intent(in) :: gflops
-      !! Measured performance in GFLOP/s
+      type(BenchmarkResult), intent(in) :: res
+      !! Measured performance and energy
 
       integer(int64), intent(in), optional :: m, n, k
       !! Problem dimensions
 
-      character(len=32) :: ms, ns, ks, gs
+      character(len=32) :: ms, ns, ks, gs, ws, es
       !! String buffers for the numeric fields
 
       ms = ""
@@ -164,9 +193,17 @@ contains
       if (present(m)) write(ms, "(I0)") m
       if (present(n)) write(ns, "(I0)") n
       if (present(k)) write(ks, "(I0)") k
-      write(gs, "(F0.7)") gflops
+      write(gs, "(F0.7)") res%gflops
+
+      ws = ""
+      es = ""
+      if (res%gflops_per_joule > 0) then
+         write(ws, "(F0.7)") res%watts
+         write(es, "(F0.7)") res%gflops_per_joule
+      end if
 
       write(iunit, "(A)") trim(implementation)//","// &
-         trim(ms)//","//trim(ns)//","//trim(ks)//","//trim(adjustl(gs))
+         trim(ms)//","//trim(ns)//","//trim(ks)//","//trim(adjustl(gs))//","// &
+         trim(adjustl(ws))//","//trim(adjustl(es))
    end subroutine write_result
 end module benchmark_types

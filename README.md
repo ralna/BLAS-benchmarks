@@ -79,6 +79,18 @@ FLEXIBLAS="YOUR_BLAS" ./build/benchmark_blas config.toml
 ```
 Available BLAS backends are shown with `flexiblas list`.
 
+## Energy measurements
+
+Energy is measured in-process with [energy-fortran](https://github.com/14NGiestas/energy-fortran), which is fetched automatically by meson. Each results file has the columns:
+
+```
+implementation,m,n,k,gflops,watts,gflops_per_joule
+```
+
+`gflops` is the best of the timed iterations. `watts` (mean power) and `gflops_per_joule` (energy efficiency) are measured across the whole timed loop, because a single call is usually shorter than the sensor's update interval.
+
+The sensor is detected automatically and printed at startup. It prefers RAPL counters (`/sys/class/powercap`) and falls back to hwmon power sensors. RAPL measures the CPU package, so it does not include GPU energy. To choose a specific sensor, set `ENERGY_SENSOR` to its path, e.g. `ENERGY_SENSOR=/sys/class/powercap/intel-rapl:0/energy_uj`. Reading RAPL counters may require root or read permission on `energy_uj`. If no energy was measured (no sensor, or the run was too short to register), the energy columns are left empty.
+
 ## Visualising results
 
 A `plot_results.py` script is included to turn the generated CSV files into

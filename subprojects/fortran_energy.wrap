@@ -1,0 +1,9 @@
+[wrap-git]
+directory = fortran_energy
+url = https://github.com/14NGiestas/energy-fortran
+revision = v0.1.0
+depth = 1
+patch_directory = fortran_energy
+
+[provide]
+fortran_energy = fortran_energy_dep

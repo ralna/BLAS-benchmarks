@@ -4,7 +4,7 @@
 Each ``results_<ROUTINE>.csv`` file produced by the benchmark tool is a
 table with the columns::
 
-    implementation,m,n,k,gflops
+    implementation,m,n,k,gflops,watts,gflops_per_joule
 
 This script renders one heatmap per results file parsed.
 

@@ -1,5 +1,5 @@
 module blas_l1_benchmarks
-   use benchmark_types, only: Benchmark, write_result_header, write_result, read_array
+   use benchmark_types, only: Benchmark, BenchmarkResult, write_result_header, write_result, read_array
    use l1_interfaces, only: dasum, daxpy
    use iso_fortran_env, only: int64, real64
    use tomlf, only: toml_table
@@ -56,7 +56,7 @@ contains
       character(len=16), intent(in) :: blas_name
 
       integer :: i, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
       logical :: file_exists
 
       call self%open_results_file(iunit, file_exists)
@@ -74,10 +74,10 @@ contains
          call random_number(self%x)
          call random_number(self%y)
 
-         avg_gflops = self%time_benchmark(100)
+         res = self%time_benchmark(100)
 
          call write_result(iunit, trim(blas_name), &
-            avg_gflops, n=self%n)
+            res, n=self%n)
 
          deallocate(self%x)
          deallocate(self%y)
@@ -108,7 +108,7 @@ contains
       character(len=16), intent(in) :: blas_name
 
       integer :: i, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
       logical :: file_exists
 
       call self%open_results_file(iunit, file_exists)
@@ -124,10 +124,10 @@ contains
 
          call random_number(self%x)
 
-         avg_gflops = self%time_benchmark(100)
+         res = self%time_benchmark(100)
 
          call write_result(iunit, trim(blas_name), &
-            avg_gflops, n=self%n)
+            res, n=self%n)
 
          deallocate(self%x)
       end do

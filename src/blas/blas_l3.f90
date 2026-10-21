@@ -1,5 +1,5 @@
 module blas_l3_benchmarks
-   use benchmark_types, only: Benchmark, read_array, write_result_header, write_result
+   use benchmark_types, only: Benchmark, BenchmarkResult, read_array, write_result_header, write_result
    use l3_interfaces, only: dgemm, dsyrk, dsyr2k
    use iso_fortran_env, only: int64, real64
    use tomlf, only: toml_table
@@ -73,7 +73,7 @@ contains
       character(len=16), intent(in) :: blas_name
 
       integer :: i, j, k, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
       logical :: file_exists
 
       call self%open_results_file(iunit, file_exists)
@@ -97,10 +97,10 @@ contains
                call random_number(self%B)
                call random_number(self%C)
 
-               avg_gflops = self%time_benchmark(100)
+               res = self%time_benchmark(100)
 
                call write_result(iunit, trim(blas_name), &
-                  avg_gflops, m=self%m, n=self%n, k=self%k)
+                  res, m=self%m, n=self%n, k=self%k)
 
                deallocate(self%A)
                deallocate(self%B)
@@ -148,7 +148,7 @@ contains
       character(len=16), intent(in) :: blas_name
 
       integer :: i, j, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
       logical :: file_exists
 
       call self%open_results_file(iunit, file_exists)
@@ -168,10 +168,10 @@ contains
             call random_number(self%A)
             call random_number(self%C)
 
-            avg_gflops = self%time_benchmark(100)
+            res = self%time_benchmark(100)
 
             call write_result(iunit, trim(blas_name), &
-               avg_gflops, n=self%n, k=self%k)
+               res, n=self%n, k=self%k)
 
             deallocate(self%A)
             deallocate(self%C)
@@ -215,7 +215,7 @@ contains
       character(len=16), intent(in) :: blas_name
 
       integer :: i, j, iunit
-      real(real64) :: avg_gflops
+      type(BenchmarkResult) :: res
       logical :: file_exists
 
       call self%open_results_file(iunit, file_exists)
@@ -237,10 +237,10 @@ contains
             call random_number(self%B)
             call random_number(self%C)
 
-            avg_gflops = self%time_benchmark(100)
+            res = self%time_benchmark(100)
 
             call write_result(iunit, trim(blas_name), &
-               avg_gflops, n=self%n, k=self%k)
+               res, n=self%n, k=self%k)
 
             deallocate(self%A)
             deallocate(self%B)
