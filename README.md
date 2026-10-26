@@ -125,14 +125,14 @@ next to each CSV.
         - n-sizes (array)
         - k-sizes (array)
 
-- CUBLAS_DGEMM (CUDA only)
+- CU_DGEMM (CUDA only)
     - Double precision $\alpha A B + \beta C$ on Nvidia GPU
     - Required options:
         - m-sizes (array)
         - n-sizes (array)
         - k-sizes (array)
 
-- HIPBLAS_DGEMM (HIP only)
+- HIP_DGEMM (HIP only)
     - Double precision $\alpha A B + \beta C$ on AMD GPU
     - Required options:
         - m-sizes (array)

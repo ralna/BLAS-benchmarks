@@ -1,3 +1,3 @@
 src += files(
-    'gpu/hip/hipblas.f90'
+    'hipblas.f90'
     )

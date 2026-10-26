@@ -26,18 +26,18 @@ module cuda_interfaces
 
       function cublasDgemm(handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc) &
          bind(C, name="cublasDgemm_v2")
-         import :: c_ptr, c_int, c_long, c_double
+         import :: c_ptr, c_int
          type(c_ptr), value :: handle
          integer(c_int), value :: transa, transb
-         integer(c_long), value :: m, n, k
-         real(c_double), value :: alpha
+         integer(c_int), value :: m, n, k
+         type(c_ptr), value :: alpha
          type(c_ptr), value :: A
-         integer(c_long), value :: lda
+         integer(c_int), value :: lda
          type(c_ptr), value :: B
-         integer(c_long), value :: ldb
-         real(c_double), value :: beta
+         integer(c_int), value :: ldb
+         type(c_ptr), value :: beta
          type(c_ptr), value :: C
-         integer(c_long), value :: ldc
+         integer(c_int), value :: ldc
          integer(c_int) :: cublasDgemm
       end function
 

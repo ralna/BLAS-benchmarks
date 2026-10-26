@@ -37,7 +37,8 @@ module cublas_benchmarks
 contains
    subroutine cuda_err_check(stat, flag)
       integer, intent(in) :: stat
-      integer, intent(out) :: flag
+      integer, intent(inout) :: flag
+      !! Set to 1 on failure, left unchanged on success so that errors persist
 
       if ( stat /= 0 ) then
          print *, "CUDA failed with error: ", stat
@@ -64,7 +65,9 @@ contains
       integer :: i, j, k, iunit
       real(real64) :: avg_gflops
       logical :: file_exists
-      integer :: flag = 0
+      integer :: flag
+
+      flag = 0
 
       ! init CUBLAS handle
       self%handle = c_null_ptr
@@ -154,6 +157,7 @@ contains
 
       real(c_double), target :: alpha_t, beta_t
 
+      flag = 0
       alpha_t = self%alpha
       beta_t = self%beta
 
@@ -161,17 +165,17 @@ contains
          self%handle,&
          CUBLAS_OP_N,&
          CUBLAS_OP_N,&
-         self%m,&
-         self%n,&
-         self%k,&
+         int(self%m, c_int),&
+         int(self%n, c_int),&
+         int(self%k, c_int),&
          c_loc(alpha_t),&
          self%A_d,&
-         self%m,&
+         int(self%m, c_int),&
          self%B_d,&
-         self%k,&
+         int(self%k, c_int),&
          c_loc(beta_t),&
          self%C_d,&
-         self%m&
+         int(self%m, c_int)&
          ), flag)
 
       if ( flag == 1 ) then
